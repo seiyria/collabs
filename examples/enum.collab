@@ -1,0 +1,22 @@
+
+enum Test {
+  PropOne
+  PropTwo
+}
+
+enum TestTwo { PropOne PropTwo }
+
+enum TestThree {
+  PropOne = 2
+}
+
+# Please don't
+enum TestThreeTwo { PropOne = 2 PropTwo = 4 }
+
+enum TestFour {
+  PropOne = Test
+  PropTwo = hello
+}
+
+# Also please don't
+enum TestFourTwo { PropOne = A PropTwo = B }

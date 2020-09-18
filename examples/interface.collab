@@ -1,0 +1,17 @@
+
+interface TestOne {
+  tests: string
+  testb: boolean
+  testi: integer
+  testf: float
+  testc: char
+  testa: any
+
+  testo?: string
+  testarr?: Array<string>
+  testarrnest?: Array<Array<string>>
+  testarrnestnest?: Array<Array<Array<string>>>
+
+  testrec: Record<string, integer>
+  testnestrec: Record<string, Array<integer>>
+}

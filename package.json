@@ -1,0 +1,19 @@
+{
+  "name": "collabs",
+  "version": "1.0.0",
+  "description": "A tool to generate cross-language enums and interfaces.",
+  "main": "parse.js",
+  "bin": "cli.js",
+  "dependencies": {
+    "minimist": "^1.2.5",
+    "nearley": "^2.19.6"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "postinstall": "npm run build",
+    "build": "nearleyc collab/collab.ne -o collab.js",
+    "parse": "node parse"
+  },
+  "author": "Kyle Kemp <kyle@seiyria.com>",
+  "license": "MIT"
+}
