@@ -1,6 +1,7 @@
+const Output = require('./output')
 
-module.exports = (tokens) => {
-  let result = '';
+module.exports = (tokens, namespace, baseFilename) => {
+  let contents = '';
 
   tokens.forEach(token => {
     let tokenRes = '';
@@ -41,14 +42,14 @@ ${tokenPropStrings.join('\n')}
       `
     }
 
-    result += tokenRes + '\n';
+    contents += tokenRes + '\n';
   });
 
-  result = result
+  contents = contents
     .split('integer').join('number')
     .split('float').join('number')
     .split('char').join('string')
   ;
 
-  return result;
+  return [new Output(baseFilename + ".ts", contents)];
 };

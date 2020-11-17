@@ -10,8 +10,9 @@ A tool to create cross-language enums and interfaces.
 ## CLI Flags
 
 * `--file` - the `.collab` file to parse
-* `--outFile` - the destination file to output
+* `--baseFilename` - the destination file to output, without extension
 * `--format` - the format of the file to parse as (supports `ts` only at this time)
+* `--namespace` - the namespace within which the generated enums/interfaces are contained in. (optional)
 
 ## Supported Features
 
