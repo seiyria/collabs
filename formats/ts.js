@@ -34,7 +34,62 @@ ${tokenPropStrings.join('\n')}
     }
 
     if(token.type === 'interface') {
-      const tokenPropStrings = token.props.map(p => `\t${p.prop}${p.optional ? '?' : ''}: ${p.typeInfo.literal};`);
+      let tokenPropStrings = [];
+      token.props.forEach(p => {
+        if(["int64_t", "uint64_t", "int32_t", "uint32_t", "float", "double", "char"].indexOf(p.typeInfo) > -1) {
+          tokenPropStrings.push(`\t${p.prop}${p.optional ? '?' : ''}: number;`);
+        } else if(p.typeInfo.literal && p.typeInfo.type === "array") {
+          let literal = 'Array<';
+          let inner = p.typeInfo.inner;
+          let endBracketCount = 1;
+          while(inner && inner.inner !== undefined) {
+            console.log(inner);
+            literal += 'Array<';
+            inner = inner.inner;
+            endBracketCount++;
+          }
+          literal += inner;
+          while(endBracketCount > 0) {
+            literal += '>';
+            endBracketCount--;
+          }
+          tokenPropStrings.push(`\t${p.prop}${p.optional ? '?' : ''}: ${literal};`);
+        } else if(p.typeInfo.literal && p.typeInfo.type === "record") {
+          console.log(p.typeInfo);
+          let literal = 'Record<';
+          let left = p.typeInfo.left;
+          let leftEndBracketCount = 0;
+          while(left && left.left !== undefined) {
+            console.log(left);
+            literal += 'Record<';
+            left = left.left;
+            leftEndBracketCount++;
+          }
+          literal += left;
+          while(leftEndBracketCount > 0) {
+            literal += '>';
+            leftEndBracketCount--;
+          }
+          literal += ', ';
+          let right = p.typeInfo.right;
+          let rightEndBracketCount = 0;
+          while(right && right.right !== undefined) {
+            console.log(right);
+            literal += 'Record<';
+            right = right.right;
+            rightEndBracketCount++;
+          }
+          literal += right;
+          while(rightEndBracketCount > 0) {
+            literal += '>';
+            rightEndBracketCount--;
+          }
+          literal += '>';
+          tokenPropStrings.push(`\t${p.prop}${p.optional ? '?' : ''}: ${literal};`);
+        } else {
+          tokenPropStrings.push(`\t${p.prop}${p.optional ? '?' : ''}: ${p.typeInfo};`);
+        }
+      });
       tokenRes = `
 interface ${token.name} {
 ${tokenPropStrings.join('\n')}
