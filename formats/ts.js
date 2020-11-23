@@ -1,5 +1,18 @@
 const Output = require('./output')
 
+generateInterfaceRecursively = function(p) {
+  console.log(p);
+  if(["int64_t", "uint64_t", "int32_t", "uint32_t", "float", "double", "char"].indexOf(p) > -1) {
+    return 'number';
+  } else if(p.literal && p.type === "array") {
+    return `Array<${generateInterfaceRecursively(p.inner)}>`;
+  } else if(p.literal && p.type === "record") {
+    return `Record<${generateInterfaceRecursively(p.left)}, ${generateInterfaceRecursively(p.right)}>`;
+  } else {
+    return p;
+  }
+}
+
 module.exports = (tokens, namespace, baseFilename) => {
   let contents = '';
 
@@ -39,53 +52,9 @@ ${tokenPropStrings.join('\n')}
         if(["int64_t", "uint64_t", "int32_t", "uint32_t", "float", "double", "char"].indexOf(p.typeInfo) > -1) {
           tokenPropStrings.push(`\t${p.prop}${p.optional ? '?' : ''}: number;`);
         } else if(p.typeInfo.literal && p.typeInfo.type === "array") {
-          let literal = 'Array<';
-          let inner = p.typeInfo.inner;
-          let endBracketCount = 1;
-          while(inner && inner.inner !== undefined) {
-            console.log(inner);
-            literal += 'Array<';
-            inner = inner.inner;
-            endBracketCount++;
-          }
-          literal += inner;
-          while(endBracketCount > 0) {
-            literal += '>';
-            endBracketCount--;
-          }
-          tokenPropStrings.push(`\t${p.prop}${p.optional ? '?' : ''}: ${literal};`);
+          tokenPropStrings.push(`\t${p.prop}${p.optional ? '?' : ''}: Array<${generateInterfaceRecursively(p.typeInfo.inner)}>;`);
         } else if(p.typeInfo.literal && p.typeInfo.type === "record") {
-          console.log(p.typeInfo);
-          let literal = 'Record<';
-          let left = p.typeInfo.left;
-          let leftEndBracketCount = 0;
-          while(left && left.left !== undefined) {
-            console.log(left);
-            literal += 'Record<';
-            left = left.left;
-            leftEndBracketCount++;
-          }
-          literal += left;
-          while(leftEndBracketCount > 0) {
-            literal += '>';
-            leftEndBracketCount--;
-          }
-          literal += ', ';
-          let right = p.typeInfo.right;
-          let rightEndBracketCount = 0;
-          while(right && right.right !== undefined) {
-            console.log(right);
-            literal += 'Record<';
-            right = right.right;
-            rightEndBracketCount++;
-          }
-          literal += right;
-          while(rightEndBracketCount > 0) {
-            literal += '>';
-            rightEndBracketCount--;
-          }
-          literal += '>';
-          tokenPropStrings.push(`\t${p.prop}${p.optional ? '?' : ''}: ${literal};`);
+          tokenPropStrings.push(`\t${p.prop}${p.optional ? '?' : ''}: Record<${generateInterfaceRecursively(p.typeInfo.left)}, ${generateInterfaceRecursively(p.typeInfo.right)}>;`);
         } else {
           tokenPropStrings.push(`\t${p.prop}${p.optional ? '?' : ''}: ${p.typeInfo};`);
         }
