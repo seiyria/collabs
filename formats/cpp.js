@@ -139,7 +139,8 @@ ${indent}struct ${token.name} {\n`;
         contents += '}';
     }
 
-    let top = '#pragma once\n';
+    let top = '// GENERATED CONTENT\n';
+    top += '#pragma once\n';
     top += '#include <string>\n';
     top += '#include <optional>\n';
     top += '#include <vector>\n';
