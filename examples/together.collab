@@ -18,7 +18,6 @@ interface TestOne {
   testb: boolean
   testi: uint32_t
   testf: float
-  testc: char
   testa: any
 
   testo?: string

@@ -21,14 +21,14 @@ module.exports = class CppCommon {
       return `std::tuple<${CppCommon.getPropTypeRecursive(prop.left)}, ${CppCommon.getPropTypeRecursive(prop.right)}>`;
     }
 
-    if(["int64_t", "uint64_t", "int32_t", "uint32_t", "float", "double", "char"].indexOf(prop) > -1) {
+    if(["int64_t", "uint64_t", "int32_t", "uint32_t", "float", "double"].indexOf(prop) > -1) {
       return `${prop}`;
     }
 
     return '';
   }
 
-  static getPropType(prop) {
+  static getPropType(prop, allowOptionals = true) {
     let newResult = '';
 
     if(prop.typeInfo === "any") {
@@ -36,7 +36,7 @@ module.exports = class CppCommon {
     }
 
     if(prop.typeInfo === "string") {
-      if(prop.optional) {
+      if(prop.optional && allowOptionals) {
         newResult += `std::optional<std::string>`;
       } else {
         newResult += `std::string`;
@@ -44,7 +44,7 @@ module.exports = class CppCommon {
     }
 
     if(prop.typeInfo === "boolean") {
-      if(prop.optional) {
+      if(prop.optional && allowOptionals) {
         newResult += `std::optional<bool>`;
       } else {
         newResult += `bool`;
@@ -52,24 +52,25 @@ module.exports = class CppCommon {
     }
 
     if(prop.typeInfo.literal && prop.typeInfo.literal.startsWith("Array")) {
-      if(prop.optional) {
-        newResult += `std::optional<std::vector<${CppCommon.getPropTypeRecursive({typeInfo: prop.typeInfo.inner})}>>`;
+      if(prop.optional && allowOptionals) {
+        newResult += `std::optional<std::vector<${CppCommon.getPropTypeRecursive(prop.typeInfo.inner)}>>`;
       } else {
         newResult += `std::vector<${CppCommon.getPropTypeRecursive(prop.typeInfo.inner)}>`;
       }
     }
 
     if(prop.typeInfo.literal && prop.typeInfo.literal.startsWith("Record")) {
-      if(prop.optional) {
-        newResult += `std::optional<std::tuple<${CppCommon.getPropTypeRecursive(prop.typeInfo.left)}, ${CppCommon.getPropTypeRecursive(prop.typeInfo.right)}>>`;
-      } else {
-        newResult += `std::tuple<${CppCommon.getPropTypeRecursive(prop.typeInfo.left)}, ${CppCommon.getPropTypeRecursive(prop.typeInfo.right)}>`;
-      }
-
+      console.log(`${prop.prop}: records not supported`);
+      // although classes/structs with records can be generated, let's not pretend they're useful in C++.
+      // if(prop.optional && allowOptionals) {
+      //   newResult += `std::optional<std::tuple<${CppCommon.getPropTypeRecursive(prop.typeInfo.left)}, ${CppCommon.getPropTypeRecursive(prop.typeInfo.right)}>>`;
+      // } else {
+      //   newResult += `std::tuple<${CppCommon.getPropTypeRecursive(prop.typeInfo.left)}, ${CppCommon.getPropTypeRecursive(prop.typeInfo.right)}>`;
+      // }
     }
 
-    if(["int64_t", "uint64_t", "int32_t", "uint32_t", "float", "double", "char"].indexOf(prop.typeInfo) > -1) {
-      if(prop.optional) {
+    if(["int64_t", "uint64_t", "int32_t", "uint32_t", "float", "double"].indexOf(prop.typeInfo) > -1) {
+      if(prop.optional && allowOptionals) {
         newResult += `std::optional<${prop.typeInfo}>`;
       } else {
         newResult += `${prop.typeInfo}`;

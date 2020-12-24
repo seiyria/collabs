@@ -36,10 +36,6 @@ const generateSerializerRecursively = function(indent, varname, prop) {
         newResult += `${indent}    writer.Double(${varname});\n`;
     }
 
-    else if(prop === "char") {
-        newResult += `${indent}    writer.String(&${varname}, 1);\n`;
-    }
-
     else if(prop.literal && prop.literal.startsWith("Array")) {
         newResult += `${indent}    writer.StartArray();\n`;
         newResult += `${indent}    for(auto const &${varname}val : ${varname}) {\n`;
@@ -49,15 +45,15 @@ const generateSerializerRecursively = function(indent, varname, prop) {
     }
 
     else if(prop.literal && prop.literal.startsWith("Record")) {
-        newResult += `${indent}    writer.StartObject();\n`;
-        newResult += `${indent}    {\n`;
-        newResult += `${indent}    auto const& [left${varname}, right${varname}] = ${varname};\n\n`;
-        newResult += `${indent}    writer.String("left");\n`;
-        newResult += generateSerializerRecursively(indent, `left${varname}`, prop.typeInfo.left);
-        newResult += `\n${indent}    writer.String("right");\n`;
-        newResult += generateSerializerRecursively(indent, `right${varname}`, prop.typeInfo.right);
-        newResult += `\n${indent}    writer.EndObject();\n\n`;
-        newResult += `${indent}    }\n`;
+        // newResult += `${indent}    writer.StartObject();\n`;
+        // newResult += `${indent}    {\n`;
+        // newResult += `${indent}    auto const& [left${varname}, right${varname}] = ${varname};\n\n`;
+        // newResult += `${indent}    writer.String("left");\n`;
+        // newResult += generateSerializerRecursively(indent, `left${varname}`, prop.typeInfo.left);
+        // newResult += `\n${indent}    writer.String("right");\n`;
+        // newResult += generateSerializerRecursively(indent, `right${varname}`, prop.typeInfo.right);
+        // newResult += `\n${indent}    writer.EndObject();\n\n`;
+        // newResult += `${indent}    }\n`;
     }
 
     return newResult;
@@ -66,7 +62,7 @@ const generateSerializerRecursively = function(indent, varname, prop) {
 const generateSerializer = function(indent, prop) {
     let newResult = '';
     let propName = `msg->${prop.prop}`;
-    console.log(`prop: ${prop}, ${prop.typeInfo}, ${prop.typeInfo.literal}, ${["int64_t, uint64_t, int32_t, uint32_t, float, double, char"].indexOf(prop.typeInfo)}`);
+    // console.log(`prop: ${prop}, ${prop.typeInfo}, ${prop.typeInfo.literal}, ${["int64_t, uint64_t, int32_t, uint32_t, float, double"].indexOf(prop.typeInfo)}`);
 
     if(prop.optional) {
         newResult += `${indent}    if(${propName}) {\n`;
@@ -79,56 +75,41 @@ const generateSerializer = function(indent, prop) {
     }
 
     else if(prop.typeInfo === "string") {
-        console.log(`string: ${prop}`);
         newResult += `${indent}    writer.String("${prop.prop}", ${prop.prop.length});\n`;
         newResult += `${indent}    writer.String(${propName}.c_str(), ${propName}.size());\n`;
     }
 
     else if(prop.typeInfo === "boolean") {
-        console.log(`boolean: ${prop}`);
         newResult += `${indent}    writer.String("${prop.prop}", ${prop.prop.length});\n`;
         newResult += `${indent}    writer.Bool(${propName});\n`;
     }
 
     else if(prop.typeInfo === "int64_t") {
-        console.log(`int64_t: ${prop}`);
         newResult += `${indent}    writer.String("${prop.prop}", ${prop.prop.length});\n`;
         newResult += `${indent}    writer.Int64(${propName});\n`;
     }
 
     else if(prop.typeInfo === "uint64_t") {
-        console.log(`uint64_t: ${prop}`);
         newResult += `${indent}    writer.String("${prop.prop}", ${prop.prop.length});\n`;
         newResult += `${indent}    writer.Uint64(${propName});\n`;
     }
 
     else if(prop.typeInfo === "int32_t") {
-        console.log(`int32_t: ${prop}`);
         newResult += `${indent}    writer.String("${prop.prop}", ${prop.prop.length});\n`;
         newResult += `${indent}    writer.Int32(${propName});\n`;
     }
 
     else if(prop.typeInfo === "uint32_t") {
-        console.log(`uint32_t: ${prop}`);
         newResult += `${indent}    writer.String("${prop.prop}", ${prop.prop.length});\n`;
         newResult += `${indent}    writer.Uint32(${propName});\n`;
     }
 
     else if(prop.typeInfo === "float" || prop.typeInfo === "double") {
-        console.log(`float/double: ${prop}`);
         newResult += `${indent}    writer.String("${prop.prop}", ${prop.prop.length});\n`;
         newResult += `${indent}    writer.Double(${propName});\n`;
     }
 
-    else if(prop.typeInfo === "char") {
-        console.log(`char: ${prop}`);
-        newResult += `${indent}    writer.String("${prop.prop}", ${prop.prop.length});\n`;
-        newResult += `${indent}    writer.String(&${propName}, 1);\n`;
-    }
-
     else if(prop.typeInfo.literal && prop.typeInfo.literal.startsWith("Array")) {
-        console.log(`array: ${prop}`);
-
         newResult += `${indent}    writer.String("${prop.prop}", ${prop.prop.length});\n`;
         newResult += `${indent}    writer.StartArray();\n`;
         newResult += `${indent}    for(auto const &val : ${propName}) {\n`;
@@ -138,20 +119,21 @@ const generateSerializer = function(indent, prop) {
     }
 
     else if(prop.typeInfo.literal && prop.typeInfo.literal.startsWith("Record")) {
-        console.log(`record: ${prop}`);
-
-        newResult += `${indent}    writer.String("${prop.prop}", ${prop.prop.length});\n`;
-        newResult += `${indent}    writer.StartObject();\n`;
-        indent += '    ';
-        newResult += `${indent}{\n`;
-        newResult += `${indent}    auto const& [left, right] = ${propName};\n\n`;
-        newResult += `${indent}    writer.String("left", 4);\n`;
-        newResult += generateSerializerRecursively(indent, `left`, prop.typeInfo.left);
-        newResult += `\n${indent}    writer.String("right", 5);\n`;
-        newResult += generateSerializerRecursively(indent, `right`, prop.typeInfo.right);
-        newResult += `${indent}}\n`;
-        indent = indent.slice(0, -4);
-        newResult += `${indent}    writer.EndObject();\n`;
+        console.log(`${prop.prop}: records not supported`);
+        // console.log(`record: ${prop}`);
+        //
+        // newResult += `${indent}    writer.String("${prop.prop}", ${prop.prop.length});\n`;
+        // newResult += `${indent}    writer.StartObject();\n`;
+        // indent += '    ';
+        // newResult += `${indent}{\n`;
+        // newResult += `${indent}    auto const& [left, right] = ${propName};\n\n`;
+        // newResult += `${indent}    writer.String("left", 4);\n`;
+        // newResult += generateSerializerRecursively(indent, `left`, prop.typeInfo.left);
+        // newResult += `\n${indent}    writer.String("right", 5);\n`;
+        // newResult += generateSerializerRecursively(indent, `right`, prop.typeInfo.right);
+        // newResult += `${indent}}\n`;
+        // indent = indent.slice(0, -4);
+        // newResult += `${indent}    writer.EndObject();\n`;
     }
 
     if(prop.optional) {
@@ -166,7 +148,7 @@ const generateSerializer = function(indent, prop) {
 const generateDeserializerErrorChecking = function(indent, prop) {
     let newResult = '';
 
-    if(!prop.optional) {
+    if(!prop.optional && !(prop.typeInfo.literal && prop.typeInfo.literal.startsWith("Record"))) {
         newResult += `${indent}    if(!d.HasMember("${prop.prop}")) {\n`;
         newResult += `${indent}        return nullptr;\n`;
         newResult += `${indent}    }\n`;
@@ -175,20 +157,48 @@ const generateDeserializerErrorChecking = function(indent, prop) {
     return newResult;
 }
 
-const generateDeserializerArraysRecordsRecursively = function(indent, varname, prop) {
+const generateDeserializerArraysRecordsRecursively = function(indent, arrname, varname, prop) {
     let newResult = '';
 
     if(prop.literal && prop.literal.startsWith("Array")) {
-        newResult += `${indent}    ${CppCommon.getPropTypeRecursive(prop)} ${varname}val;\n`;
-        newResult += `${indent}    ${varname}val.reserve(${varname}.Size());\n`;
+        newResult += `${indent}    ${CppCommon.getPropTypeRecursive(prop)} ${arrname}arr;\n`;
+        newResult += `${indent}    ${arrname}val.reserve(${varname}.Size());\n`;
         newResult += `${indent}    for(auto const &${varname}val : ${varname}.GetArray()) {\n`;
-        newResult += generateDeserializerArraysRecordsRecursively(indent + '    ', varname + 'val', prop.inner);
+        newResult += generateDeserializerArraysRecordsRecursively(indent + '    ', arrname + 'arr', varname + 'val', prop.inner);
         newResult += `${indent}    }\n`;
-        newResult += `${indent}    writer.EndArray();\n`;
+        newResult += `${indent}    ${arrname}.emplace_back(std::move(${arrname}arr));\n`;
+    }
+
+    else if(prop === "string") {
+        newResult += `${indent}    ${arrname}.emplace_back(${varname}.GetString());\n`;
+    }
+
+    else if(prop === "boolean") {
+        newResult += `${indent}    ${arrname}.emplace_back(${varname}.GetBool());\n`;
+    }
+
+    else if(prop === "int64_t") {
+        newResult += `${indent}    ${arrname}.emplace_back(${varname}.GetInt64());\n`;
+    }
+
+    else if(prop === "uint64_t") {
+        newResult += `${indent}    ${arrname}.emplace_back(${varname}.GetUint64());\n`;
+    }
+
+    else if(prop === "int32_t") {
+        newResult += `${indent}    ${arrname}.emplace_back(${varname}.GetInt());\n`;
+    }
+
+    else if(prop === "uint32_t") {
+        newResult += `${indent}    ${arrname}.emplace_back(${varname}.GetUint());\n`;
+    }
+
+    else if(prop === "float" || prop === "double") {
+        newResult += `${indent}    ${arrname}.emplace_back(${varname}.GetDouble());\n`;
     }
 
     else if(prop.literal && prop.literal.startsWith("Record")) {
-
+        console.log("Records are not supported");
     }
 
     return newResult;
@@ -198,9 +208,9 @@ const generateDeserializerArraysRecords = function(indent, prop) {
     let newResult = '';
 
     if(prop.typeInfo.literal && prop.typeInfo.literal.startsWith("Array")) {
+        newResult += `${indent}    ${CppCommon.getPropType(prop, false)} ${prop.prop};\n`;
         newResult += `${indent}    {\n`;
         indent += '    ';
-        newResult += `${indent}    ${CppCommon.getPropType(prop)} ${prop.prop};\n`;
         if(prop.optional) {
             newResult += `${indent}    if(d.HasMember("${prop.prop}")) {\n`;
             indent += '    ';
@@ -208,7 +218,7 @@ const generateDeserializerArraysRecords = function(indent, prop) {
 
         newResult += `${indent}    ${prop.prop}.reserve(d["${prop.prop}"].Size());\n`;
         newResult += `${indent}    for(auto const &val : d["${prop.prop}"].GetArray()) {\n`;
-        newResult += generateDeserializerArraysRecordsRecursively(indent + '    ', 'val', prop.typeInfo.inner);
+        newResult += generateDeserializerArraysRecordsRecursively(indent + '    ', prop.prop, 'val', prop.typeInfo.inner);
         newResult += `${indent}    }\n`;
 
         if(prop.optional) {
@@ -219,24 +229,24 @@ const generateDeserializerArraysRecords = function(indent, prop) {
     }
 
     else if(prop.typeInfo.literal && prop.typeInfo.literal.startsWith("Record")) {
-        newResult += `${indent}    {\n`;
-        indent += '    ';
-        newResult += `${indent}    ${CppCommon.getPropType(prop)} ${prop.prop};\n`;
-        if(prop.optional) {
-            newResult += `${indent}    if(d.HasMember("${prop.prop}")) {\n`;
-            indent += '    ';
-        }
-
-        newResult += `${indent}    for(auto const &val : d["${prop.prop}"].GetObject()) {\n`;
-        newResult += `${indent}        std::get<0>(${prop.prop}) = ${generateDeserializerArraysRecordsRecursively(indent + '    ', 'val', prop.typeInfo.left)}\n`;
-        newResult += `${indent}        std::get<1>(${prop.prop}) = ${generateDeserializerArraysRecordsRecursively(indent + '    ', 'val', prop.typeInfo.right)}\n`;
-        newResult += `${indent}    }\n`;
-
-        if(prop.optional) {
-            newResult += `${indent}}\n`;
-            indent = indent.slice(0, -4);
-        }
-        newResult += `${indent}}\n`;
+        // newResult += `${indent}    ${CppCommon.getPropType(prop)} ${prop.prop};\n`;
+        // newResult += `${indent}    {\n`;
+        // indent += '    ';
+        // if(prop.optional) {
+        //     newResult += `${indent}    if(d.HasMember("${prop.prop}")) {\n`;
+        //     indent += '    ';
+        // }
+        //
+        // newResult += `${indent}    for(auto const &val : d["${prop.prop}"].GetObject()) {\n`;
+        // newResult += `${indent}        std::get<0>(${prop.prop}) = ${generateDeserializerArraysRecordsRecursively(indent + '    ', 'val', prop.typeInfo.left)}\n`;
+        // newResult += `${indent}        std::get<1>(${prop.prop}) = ${generateDeserializerArraysRecordsRecursively(indent + '    ', 'val', prop.typeInfo.right)}\n`;
+        // newResult += `${indent}    }\n`;
+        //
+        // if(prop.optional) {
+        //     newResult += `${indent}}\n`;
+        //     indent = indent.slice(0, -4);
+        // }
+        // newResult += `${indent}}\n`;
     }
 
     return newResult;
@@ -245,7 +255,7 @@ const generateDeserializerArraysRecords = function(indent, prop) {
 const generateDeserializerInstance = function(d, comma, prop) {
     let newResult = '';
     let propName = `${prop.prop}`;
-    console.log(`prop: ${prop}, ${prop.typeInfo}, ${prop.typeInfo.literal}, ${["int64_t, uint64_t, int32_t, uint32_t, float, double, char"].indexOf(prop.typeInfo)}`);
+    // console.log(`prop: ${prop}, ${prop.typeInfo}, ${prop.typeInfo.literal}, ${["int64_t, uint64_t, int32_t, uint32_t, float, double"].indexOf(prop.typeInfo)}`);
 
     if(prop.typeInfo === "any") {
         console.log(`${prop.prop}: any not yet supported`);
@@ -253,7 +263,7 @@ const generateDeserializerInstance = function(d, comma, prop) {
 
     else if(prop.typeInfo === "string") {
         if(prop.optional) {
-            newResult += `${comma}${d}.HasMember("${propName}") ? ${d}["${propName}"].GetString() : {}`;
+            newResult += `${comma}${d}.HasMember("${propName}") ? ${d}["${propName}"].GetString() : std::optional<std::string>{}`;
         } else {
             newResult += `${comma}${d}["${propName}"].GetString()`;
         }
@@ -261,7 +271,7 @@ const generateDeserializerInstance = function(d, comma, prop) {
 
     else if(prop.typeInfo === "boolean") {
         if(prop.optional) {
-            newResult += `${comma}${d}.HasMember("${propName}") ? ${d}["${propName}"].GetBool() : {}`;
+            newResult += `${comma}${d}.HasMember("${propName}") ? ${d}["${propName}"].GetBool() : std::optional<bool>{}`;
         } else {
             newResult += `${comma}${d}["${propName}"].GetBool()`;
         }
@@ -269,7 +279,7 @@ const generateDeserializerInstance = function(d, comma, prop) {
 
     else if(prop.typeInfo === "int64_t") {
         if(prop.optional) {
-            newResult += `${comma}${d}.HasMember("${propName}") ? ${d}["${propName}"].GetInt64() : {}`;
+            newResult += `${comma}${d}.HasMember("${propName}") ? ${d}["${propName}"].GetInt64() : std::optional<${prop.typeInfo}>{}`;
         } else {
             newResult += `${comma}${d}["${propName}"].GetInt64()`;
         }
@@ -277,7 +287,7 @@ const generateDeserializerInstance = function(d, comma, prop) {
 
     else if(prop.typeInfo === "uint64_t") {
         if(prop.optional) {
-            newResult += `${comma}${d}.HasMember("${propName}") ? ${d}["${propName}"].GetUint64() : {}`;
+            newResult += `${comma}${d}.HasMember("${propName}") ? ${d}["${propName}"].GetUint64() : std::optional<${prop.typeInfo}>{}`;
         } else {
             newResult += `${comma}${d}["${propName}"].GetUint64()`;
         }
@@ -285,7 +295,7 @@ const generateDeserializerInstance = function(d, comma, prop) {
 
     else if(prop.typeInfo === "int32_t") {
         if(prop.optional) {
-            newResult += `${comma}${d}.HasMember("${propName}") ? ${d}["${propName}"].GetInt() : {}`;
+            newResult += `${comma}${d}.HasMember("${propName}") ? ${d}["${propName}"].GetInt() : std::optional<${prop.typeInfo}>{}`;
         } else {
             newResult += `${comma}${d}["${propName}"].GetInt()`;
         }
@@ -293,7 +303,7 @@ const generateDeserializerInstance = function(d, comma, prop) {
 
     else if(prop.typeInfo === "uint32_t") {
         if(prop.optional) {
-            newResult += `${comma}${d}.HasMember("${propName}") ? ${d}["${propName}"].GetUint() : {}`;
+            newResult += `${comma}${d}.HasMember("${propName}") ? ${d}["${propName}"].GetUint() : std::optional<${prop.typeInfo}>{}`;
         } else {
             newResult += `${comma}${d}["${propName}"].GetUint()`;
         }
@@ -301,19 +311,22 @@ const generateDeserializerInstance = function(d, comma, prop) {
 
     else if(prop.typeInfo === "float" || prop.typeInfo === "double") {
         if(prop.optional) {
-            newResult += `${comma}${d}.HasMember("${propName}") ? ${d}["${propName}"].GetString() : {}`;
+            newResult += `${comma}${d}.HasMember("${propName}") ? ${d}["${propName}"].GetString() : std::optional<${prop.typeInfo}>{}`;
         } else {
             newResult += `${comma}${d}["${propName}"].GetString()`;
         }
     }
 
     else if(prop.typeInfo.literal && prop.typeInfo.literal.startsWith("Array")) {
-        newResult += `${comma}${propName}`;
-        newResult
+        if(prop.optional) {
+            newResult += `${comma}${d}.HasMember("${propName}") ? std::move(${propName}) : ${CppCommon.getPropType(prop)}{}`;
+        } else {
+            newResult += `${comma}std::move(${propName})`;
+        }
     }
 
     else if(prop.typeInfo.literal && prop.typeInfo.literal.startsWith("Record")) {
-        newResult += `${comma}${propName}`;
+        // newResult += `${comma}std::move(${propName})`;
     }
 
     return newResult;
@@ -372,7 +385,7 @@ const generateHeader = function(name, includeFilename, namespace, props) {
         contents += generateDeserializerArraysRecords(indent + '    ', prop);
     }
 
-    contents += `${indent}        return new ${name}(`;
+    contents += `${indent}        return new ${name}{`;
 
     let isFirst = true;
     for(const prop of props) {
@@ -380,7 +393,7 @@ const generateHeader = function(name, includeFilename, namespace, props) {
         isFirst = false;
     }
 
-    contents += `);\n`;
+    contents += `};\n`;
 
     contents += `${indent}    }\n`;
     contents += `${indent}}\n`;

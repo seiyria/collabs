@@ -30,7 +30,6 @@ InterfacePropType ->
 | "uint64_t" {% (d) => d %}
 | "double"   {% (d) => d %}
 | "float"    {% (d) => d %}
-| "char"     {% (d) => d %}
 | "string"   {% (d) => d %}
 | "any"      {% (d) => d %}
 | InterfaceArrayType  {% (d) => d %}
