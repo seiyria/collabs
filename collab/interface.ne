@@ -23,12 +23,15 @@ InterfaceProp ->
   %}
 
 InterfacePropType -> 
-  "boolean" {% id %}
-| "integer" {% id %}
-| "float"   {% id %}
-| "char"    {% id %}
-| "string"  {% id %}
-| "any"     {% id %}
+  "boolean"  {% (d) => d %}
+| "int32_t"  {% (d) => d %}
+| "uint32_t" {% (d) => d %}
+| "int64_t"  {% (d) => d %}
+| "uint64_t" {% (d) => d %}
+| "double"   {% (d) => d %}
+| "float"    {% (d) => d %}
+| "string"   {% (d) => d %}
+| "any"      {% (d) => d %}
 | InterfaceArrayType  {% (d) => d %}
 | InterfaceRecordType {% (d) => d %}
 
@@ -40,6 +43,7 @@ InterfaceArrayType ->
     const literal = `Array<${checker.literal ? checker.literal : checker}>`;
     return {
       type: 'array',
+      inner: checker,
       literal
     };
   }
@@ -58,6 +62,8 @@ InterfaceRecordType ->
     const literal = `Record<${left}, ${right}>`;
     return {
       type: 'record',
+      left: checker1,
+      right: checker2,
       literal
     };
   }

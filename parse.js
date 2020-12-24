@@ -1,4 +1,3 @@
-
 const fs = require('fs');
 const argv = require('minimist')(process.argv.slice(2));
 
@@ -10,8 +9,8 @@ if(!argv.file) {
   return;
 }
 
-if(!argv.outFile) {
-  console.error('No --outFile passed in.');
+if(!argv.baseFilename) {
+  console.error('No --baseFilename passed in.');
   return;
 }
 
@@ -21,8 +20,12 @@ if(!argv.format) {
 }
 
 if(!fs.existsSync(`./formats/${argv.format}.js`)) {
-  console.error(`Invalid --format.`);
+  console.error(`Invalid --format. asd` + argv.format);
   return;
+}
+
+if(!argv.namespace) {
+  argv.namespace = ''
 }
 
 const format = require(`./formats/${argv.format}.js`);
@@ -45,4 +48,7 @@ if(results.length > 1) {
 
 const fixedResults = results[0].filter(Boolean);
 
-fs.writeFileSync(argv.outFile, format(fixedResults));
+const outputs = format(fixedResults, argv.namespace, argv.baseFilename);
+outputs.forEach(output => {
+  fs.writeFileSync(output.filename, output.contents);
+});

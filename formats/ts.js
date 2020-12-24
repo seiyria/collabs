@@ -1,6 +1,20 @@
+const Output = require('./output')
 
-module.exports = (tokens) => {
-  let result = '';
+generateInterfaceRecursively = function(p) {
+  console.log(p);
+  if(["int64_t", "uint64_t", "int32_t", "uint32_t", "float", "double", "char"].indexOf(p) > -1) {
+    return 'number';
+  } else if(p.literal && p.type === "array") {
+    return `Array<${generateInterfaceRecursively(p.inner)}>`;
+  } else if(p.literal && p.type === "record") {
+    return `Record<${generateInterfaceRecursively(p.left)}, ${generateInterfaceRecursively(p.right)}>`;
+  } else {
+    return p;
+  }
+}
+
+module.exports = (tokens, namespace, baseFilename) => {
+  let contents = '';
 
   tokens.forEach(token => {
     let tokenRes = '';
@@ -33,7 +47,18 @@ ${tokenPropStrings.join('\n')}
     }
 
     if(token.type === 'interface') {
-      const tokenPropStrings = token.props.map(p => `\t${p.prop}${p.optional ? '?' : ''}: ${p.typeInfo.literal};`);
+      let tokenPropStrings = [];
+      token.props.forEach(p => {
+        if(["int64_t", "uint64_t", "int32_t", "uint32_t", "float", "double", "char"].indexOf(p.typeInfo) > -1) {
+          tokenPropStrings.push(`\t${p.prop}${p.optional ? '?' : ''}: number;`);
+        } else if(p.typeInfo.literal && p.typeInfo.type === "array") {
+          tokenPropStrings.push(`\t${p.prop}${p.optional ? '?' : ''}: Array<${generateInterfaceRecursively(p.typeInfo.inner)}>;`);
+        } else if(p.typeInfo.literal && p.typeInfo.type === "record") {
+          tokenPropStrings.push(`\t${p.prop}${p.optional ? '?' : ''}: Record<${generateInterfaceRecursively(p.typeInfo.left)}, ${generateInterfaceRecursively(p.typeInfo.right)}>;`);
+        } else {
+          tokenPropStrings.push(`\t${p.prop}${p.optional ? '?' : ''}: ${p.typeInfo};`);
+        }
+      });
       tokenRes = `
 interface ${token.name} {
 ${tokenPropStrings.join('\n')}
@@ -41,14 +66,14 @@ ${tokenPropStrings.join('\n')}
       `
     }
 
-    result += tokenRes + '\n';
+    contents += tokenRes + '\n';
   });
 
-  result = result
+  contents = contents
     .split('integer').join('number')
     .split('float').join('number')
     .split('char').join('string')
   ;
 
-  return result;
+  return [new Output(baseFilename + ".ts", contents)];
 };

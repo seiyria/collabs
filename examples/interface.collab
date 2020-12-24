@@ -2,9 +2,8 @@
 interface TestOne {
   tests: string
   testb: boolean
-  testi: integer
+  testi: uint32_t
   testf: float
-  testc: char
   testa: any
 
   testo?: string
@@ -12,6 +11,6 @@ interface TestOne {
   testarrnest?: Array<Array<string>>
   testarrnestnest?: Array<Array<Array<string>>>
 
-  testrec: Record<string, integer>
-  testnestrec: Record<string, Array<integer>>
+  testrec: Record<string, int32_t>
+  testnestrec: Record<string, Array<uint64_t>>
 }
